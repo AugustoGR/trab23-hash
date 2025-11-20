@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
     HASH_TABLE_ITEM *hash_table = malloc(qtd * sizeof(HASH_TABLE_ITEM));
 
     // Inserir cada livro na tabela hash
-    // Estou salvando APENAS o índice do livro no vetor original aproveitando o que os dados já estão salvos lá
+    // Estou salvando APENAS o índice do livro no vetor original aproveitando que os dados já estão salvos lá
     for (i = 0; i < qtd; i++) {
         unsigned long hash_key = djbx33a(original[i].titulo) % qtd;
         
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
     // Testar as buscas e medir tempo
     printf("\n=== TESTES DE BUSCA ===\n");
     
-    // Solicitar título e código do livro para busca
+    // Solicitar título do livro para busca
     char search_title[MAXTIT + 1];
     
     printf("Digite o título do livro: ");
