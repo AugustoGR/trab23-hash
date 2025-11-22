@@ -12,6 +12,7 @@ unsigned long djbx33a(char *str) {
     unsigned long maxHashSize;
 
 
+    // UL é uma forma mais simples de definir o casting
     maxHashSize = (1UL << 63) - 1;
     
     while ((c = *str++)) {
