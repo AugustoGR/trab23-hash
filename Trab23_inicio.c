@@ -17,10 +17,10 @@ unsigned long djbx33a(char *str) {
     
     while ((c = *str++)) {
         // aparentemente mais eficiente que hash * 33 + c
-        hash = ((hash << 5) + hash) + c; // hash * 33 + c
+        hash = (((hash << 5) + hash) + c)% maxHashSize;
     }
     
-    return hash % maxHashSize;
+    return hash;
 }
 
 typedef struct HASH_NODE {
