@@ -3,18 +3,23 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#define HASH_TABLE_SIZE 1481
 
 // Parece ter muitos conflitos, mas ainda é rápido
 unsigned long djbx33a(char *str) {
     unsigned long hash = 5381;
     int c;
+    unsigned long maxHashSize;
+
+
+    maxHashSize = (1UL << 63) - 1;
     
     while ((c = *str++)) {
         // aparentemente mais eficiente que hash * 33 + c
         hash = ((hash << 5) + hash) + c; // hash * 33 + c
     }
     
-    return hash;
+    return hash % maxHashSize;
 }
 
 typedef struct HASH_NODE {
@@ -24,6 +29,7 @@ typedef struct HASH_NODE {
 
 typedef struct {
     int inUse;
+    int collisionCount;
     HASH_NODE *head;
 } HASH_TABLE_ITEM;
 
@@ -38,7 +44,7 @@ int buscaSequencial(LIVRO *vet, int n, char *title) {
 }
 
 int buscaHash(HASH_TABLE_ITEM *hash_table, LIVRO *original, char *title, int qtd) {
-    unsigned long hash_key = djbx33a(title) % qtd;
+    unsigned long hash_key = djbx33a(title) % HASH_TABLE_SIZE;
     
     if (!hash_table[hash_key].inUse) {
         return -1; // não encontrado
@@ -60,7 +66,7 @@ int main(int argc, char *argv[])
     FILE *arqDAT;
     LIVRO *original;
     int qtd, i;
-    int collisions = 0;
+    int hightCollision = 0;
     
     if (argc < 2) {
         fprintf(stderr, "ERRO. Precisa passar nome arquivo txt\n");
@@ -124,7 +130,7 @@ int main(int argc, char *argv[])
     // Inserir cada livro na tabela hash
     // Estou salvando APENAS o índice do livro no vetor original aproveitando que os dados já estão salvos lá
     for (i = 0; i < qtd; i++) {
-        unsigned long hash_key = djbx33a(original[i].titulo) % qtd;
+        unsigned long hash_key = djbx33a(original[i].titulo) % HASH_TABLE_SIZE;
         
         // Se a posição está vazia, criar o primeiro nó
         if (!hash_table[hash_key].inUse) {
@@ -134,16 +140,19 @@ int main(int argc, char *argv[])
             hash_table[hash_key].head->next = NULL;
         } else {
             // Colisão: adicionar no início da lista encadeada
-            collisions++;
+            hash_table[hash_key].collisionCount++;
             HASH_NODE *new = malloc(sizeof(HASH_NODE));
             new->index = i;
             new->next = hash_table[hash_key].head;
             hash_table[hash_key].head = new;
+
+            if (hash_table[hash_key].collisionCount > hightCollision) {
+                hightCollision = hash_table[hash_key].collisionCount;
+            }
         }
     }
 
-    printf("Tabela hash criada com %d colisões\n", collisions);
-
+    printf("Tabela hash criada com %d como a maior quantidade de colisões\n", hightCollision);
     // Testar as buscas e medir tempo
     printf("\n=== TESTES DE BUSCA ===\n");
     
